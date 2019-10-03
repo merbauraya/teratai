@@ -40,6 +40,11 @@ class AppHelper
         return Yii::$app->config->get('invoiceRequireVerification');
 
     }
+    public static function getRequireInvoiceApproval()
+    {
+        return Yii::$app->config->get('RequireInvoiceApproval');
+
+    }
 
     public static function getApprovalUniqueString()
     {
