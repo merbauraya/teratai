@@ -80,7 +80,10 @@ AppAsset::register($this);
 			$menuItems[] = ['label' => 'Order',
             'items' => [
                  ['label' => 'Create Order', 'url' => '/banquet-order/create'],
-                 ['label' => 'My Order', 'url' => '/banquet-order/']]
+                 ['label' => 'My Order', 'url' => '/banquet-order/'],
+                 ['label' => 'My Invoice', 'url' => '/invoice/'],
+                 
+                 ]
              ];
 		}
 		/*

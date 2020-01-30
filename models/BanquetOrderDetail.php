@@ -50,6 +50,7 @@ class BanquetOrderDetail extends \yii\db\ActiveRecord
     {
         return [
             [['orderId', 'locationId', 'paxCount', 'serveTypeId','orderStatus','verified','userId'], 'integer'],
+            [['pricePerPax'], 'number'],
             [['orderDateTime', 'bod_time','autoStatusDate'], 'safe'],
             [['note'], 'string', 'max' => 45],
             [['serveTypeId','locationId','paxCount'], 'required'],

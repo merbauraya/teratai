@@ -13,6 +13,8 @@ $config = [
         '@npm'   => '@vendor/npm-asset',
     ],
     'components' => [
+        
+
         'request' => [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
             'cookieValidationKey' => 'OyBRlR2M3HY3y8kTb-l2DAWclRh87pl4',
@@ -85,6 +87,8 @@ $config = [
             'cacheKey'      => 'config.cache',                       // Key identifying the cache value (Required only if cacheId is set)
             'cacheDuration' => 0                                   // Cache Expiration time in seconds. 0 means never expire. Defaults to 0 (Optional)
         ],
+        
+       
             /*
 		'authManager' => [
 		'class' => 'yii\rbac\DbManager',
@@ -113,6 +117,7 @@ $config = [
 		   'gridview' =>  [
         'class' => '\kartik\grid\Module'
         ],
+       
 		 
 	
     ],
@@ -144,8 +149,7 @@ $config = [
         ],
 
     ],*/
-	
-    'params' => $params,
+	    'params' => $params,
     
 ];
 

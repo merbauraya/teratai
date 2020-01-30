@@ -23,7 +23,11 @@
         "kartik-v/yii2-mpdf": "dev-master",
         "kartik-v/yii2-widget-datepicker": "@dev",
         "kartik-v/yii2-widget-select2": "@dev",
-        "kartik-v/yii2-widget-datetimepicker": "*"
+        "kartik-v/yii2-widget-datetimepicker": "*",
+        "kartik-v/yii2-number": "dev-master",
+        "mdmsoft/yii2-autonumber": "~1.5",
+        "kartik-v/yii2-tabs-x": "dev-master",
+        "albert-sointula/yii2-shop": "^0.2.3"
     },
     "require-dev": {
         "yiisoft/yii2-debug": "~2.1.0",

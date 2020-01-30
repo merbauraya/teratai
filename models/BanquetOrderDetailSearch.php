@@ -51,6 +51,11 @@ class BanquetOrderDetailSearch extends BanquetOrderDetail
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
+            'sort' => [
+                'defaultOrder' => [
+                    'orderDateTime' => SORT_DESC,
+                ],
+            ],
         ]);
 
         $this->load($params);

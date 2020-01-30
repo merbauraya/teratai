@@ -2,16 +2,16 @@
 
 namespace app\models;
 
-use Yii;
 
+use Yii;
+use app\models\FoodCategory;
 /**
  * This is the model class for table "food".
  *
  * @property int $foodId
- * @property string $foodName
  * @property int $foodCategoryId
- *
- * @property FoodCategory $foodCategory
+ * @property string $foodName
+ * @property string $price
  */
 class Food extends \yii\db\ActiveRecord
 {
@@ -29,10 +29,10 @@ class Food extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['foodName', 'foodCategoryId'], 'required'],
+            [['foodCategoryId', 'foodName'], 'required'],
             [['foodCategoryId'], 'integer'],
-            [['foodName'], 'string', 'max' => 75],
-            [['foodCategoryId'], 'exist', 'skipOnError' => true, 'targetClass' => FoodCategory::className(), 'targetAttribute' => ['foodCategoryId' => 'categoryId']],
+            [['price'], 'number'],
+            [['foodName'], 'string', 'max' => 125],
         ];
     }
 
@@ -43,16 +43,24 @@ class Food extends \yii\db\ActiveRecord
     {
         return [
             'foodId' => 'Food ID',
-            'foodName' => 'Food Name',
             'foodCategoryId' => 'Food Category ID',
+            'foodName' => 'Food Name',
+            'price' => 'Price',
         ];
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * {@inheritdoc}
+     * @return FoodQuery the active query used by this AR class.
      */
+    public static function find()
+    {
+        return new FoodQuery(get_called_class());
+    }
+
     public function getFoodCategory()
     {
         return $this->hasOne(FoodCategory::className(), ['categoryId' => 'foodCategoryId']);
+
     }
 }

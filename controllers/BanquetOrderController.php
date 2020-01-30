@@ -127,7 +127,7 @@ class BanquetOrderController extends Controller
                     $orderDetail->orderDateTime = $orderDateString;
                     $orderDetail->orderStatus = AppHelper::getDefaultOrderStatus();
                     $orderSummary->orderStatus = AppHelper::getDefaultOrderStatus();
-
+                    $orderSummary->latestEventDate = $orderDetail->orderDateTime;
                     $orderStatus = $this->createOrderStatus($orderSummary);
                     
                     $foodSelections = $data['BanquetOrderFood'];
@@ -198,10 +198,15 @@ class BanquetOrderController extends Controller
                     $orderDateString = $orderDateTime->format('Y/m/d G:i'); 
                     $orderDetail->orderDateTime = $orderDateString;
                     
+                    if ($orderSummary->latestEventDate < $orderDetail->orderDateTime)
+                    {
+                        $orderSummary->latestEventDate = $orderDetail->orderDateTime;
+                    }
+
                     $foodSelections = $data['BanquetOrderFood'];
                     
-               
-                    $orderDetailId = $this->saveOrderandFood($orderSummary,$orderDetail,$foodSelections);
+                    $orderStatus = null;
+                    $orderDetailId = $this->saveOrderandFood($orderSummary,$orderDetail,$foodSelections,$orderStatus);
                     $url = Url::toRoute(['banquet-order/view', 
                         'id' => $orderDetail->id]);
                     return $this->redirect($url);
@@ -240,7 +245,7 @@ class BanquetOrderController extends Controller
                 //Yii::debug($orderDetail->orderDateTime);
                 $orderDateTime =  DateTime::createFromFormat('D d-M-Y h:i A',$orderDetail->orderDateTime);//new \DateTime($orderDetail->bod_date);
                 $orderDateString = $orderDateTime->format('Y/m/d G:i'); 
-                Yii::debug($orderDetail->orderDateTime);
+                //Yii::debug($orderDetail->orderDateTime);
                 $orderDetail->orderDateTime = $orderDateString;
 
                 $foodSelections = $data['BanquetOrderFood'];
@@ -318,13 +323,21 @@ class BanquetOrderController extends Controller
             if ($orderSummary->save())
             {
                 $orderDetail->orderId = $orderSummary->orderId;
-                $orderStatus->orderId = $orderSummary->orderId;;
-                if (!$orderStatus->save())
+                
+                if ($orderDetail->orderDateTime > $orderSummary->latestEventDate)
                 {
-                    Yii::error('Error saving order status');
+                    $orderSummary->latestEventDate = $orderDetail->orderDateTime ;
+                }
+                if ($orderStatus != null)
+                {
+                    $orderStatus->orderId = $orderSummary->orderId;
+                    if (!$orderStatus->save())
+                    {
+                        Yii::error('Error saving order status');
 
-                    Yii::error($orderStatus->getErrors());
+                        Yii::error($orderStatus->getErrors());
 
+                    }
                 }
                 if ($orderDetail->save())
                 {
@@ -413,10 +426,16 @@ class BanquetOrderController extends Controller
                 $orderDetail->orderDateTime = $orderDateString;
                 $orderDetail->orderStatus = AppHelper::getDefaultOrderStatus();
 
+                //check for latest event date. if so, update summary order
+                //to latest event date
+                if ($order->latestEventDate < $orderDetail->orderDateTime)
+                {
+                    $order->latestEventDate = $orderDetail->orderDateTime;
+                }
 
                 $foodSelections = $data['BanquetOrderFood'];
                
-                $this->saveOrderandFood($order,$orderDetail,$foodSelections);
+                $this->saveOrderandFood($order,$orderDetail,$foodSelections,null);
                 if(isset($_POST['approval']))
 
                 {
@@ -672,6 +691,7 @@ class BanquetOrderController extends Controller
         $orderDate =  new \DateTime(Yii::$app->request->post('orderDate'));
         $orderDateString = $orderDate->format('Y/m/d h:i'); 
         $model->orderDate = $orderDateString;
+        //$model->latestEventDate = $model->orderDate;
         $model->userId = Yii::$app->user->identity->id;
         $model->createdDate = new Expression('NOW()');
         $model->orderStatus = 0;

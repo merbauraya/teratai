@@ -10,6 +10,7 @@ use app\models\BanquetOrder;
 
 use app\helper\AppHelper;
 use app\helper\MailHelper;
+use app\helper\InvoiceHelper;
 use DateTime;
  
 /**
@@ -33,33 +34,40 @@ class DaemonController extends Controller {
 
         //get all approved order for yesterday
 
-        $viewURL = Url::base('http').'/banquet-order/verify?id=2';
+        //$viewURL = Url::base('http').'/banquet-order/verify?id=2';
        // echo $viewURL;
 
-       echo \Yii::$app->getUrlManager()->createUrl(['invoice/online-payment', 'invoice_number' => 'F00001', 'hash' => 'thisIsMyHash']);
-
+       //echo \Yii::$app->getUrlManager()->createUrl(['invoice/online-payment', 'invoice_number' => 'F00001', 'hash' => 'thisIsMyHash']);
+        /*
         $orders = BanquetOrderDetail::find()
-        ->where(['between', 'orderDateTime', $startDateString, $endDateString])
-        ->andWhere(['in', 'orderStatus', BanquetOrder::ORDER_STATUS_APPROVED,BanquetOrder::ORDER_STATUS_IN_PROGRESS])
+        ->where(['in', 'orderStatus', BanquetOrder::ORDER_STATUS_APPROVED,BanquetOrder::ORDER_STATUS_IN_PROGRESS])
+        ->andWhere(['between','orderDateTime',$startDateString,$endDateString])
         ->all();
+        */
+
+        //auto verify if not yet verified after certain days
 
         //update all approved/in progress order to completed
 
-
+        $now = new DateTime();
+        $now = $now->format('Y-m-d G:i');
+        Yii::debug('start:'. $now);
+        Yii::info ('start string='.$startDateString);
+        Yii::info('end date string='.$endDateString);
 
         $transaction = Yii::$app->db->beginTransaction();
         try
         {
+            //update all order detail to completed status for yesterday orders
             Yii::$app->db->createCommand("UPDATE banquet_order_detail 
                                          SET orderStatus=:newStatus,
                                          autoStatusDate = CURDATE()
-                                        WHERE 
-                                        orderDateTime between :startDate and :endDate
-                                        AND orderStatus in (:status1, :status2)")
+                                        WHERE
+                                        orderStatus in (:status1,:status2) 
+                                        AND orderDateTime <= :endDate")
+                                        
             ->bindValue(':newStatus', BanquetOrder::ORDER_STATUS_COMPLETED)
-            ->bindValue(':startDate', $startDateString)
             ->bindValue(':endDate', $endDateString)
-            
             ->bindValue(':status1', BanquetOrder::ORDER_STATUS_APPROVED)
             ->bindValue(':status2', BanquetOrder::ORDER_STATUS_IN_PROGRESS)
             ->execute();
@@ -69,6 +77,8 @@ class DaemonController extends Controller {
                                                     where
                                                     autoStatusDate = CURDATE()')
             ->queryAll();
+
+            Yii::info ('completed order='.sizeof($orders));
             foreach ($orders as $order){
                 $orderId = $order['orderId'];
 
@@ -88,24 +98,41 @@ class DaemonController extends Controller {
                     {
                         //send mail notification
                         MailHelper::sendForOrderVerification($orderId);
-                    } 
-
-                    Yii::$app->db->createCommand("UPDATE banquet_order
+                        Yii::$app->db->createCommand("UPDATE banquet_order
                                          SET orderStatus=:newStatus,
                                          notificationSent=1
                                         WHERE 
                                         orderid = :orderId")
                                         
-                    ->bindValue(':newStatus', BanquetOrder::ORDER_STATUS_COMPLETED)
-                    ->bindValue(':orderId',$orderId)
-                    ->execute();
+                        ->bindValue(':newStatus', BanquetOrder::ORDER_STATUS_COMPLETED)
+                        ->bindValue(':orderId',$orderId)
+                        ->execute();
+                    } else // no verification required
+                    {
+                        //verify the order automatically
+                        Yii::$app->db->createCommand("UPDATE banquet_order
+                                         SET orderStatus=:newStatus,
+                                         notificationSent=1
+                                        WHERE 
+                                        orderid = :orderId")
+                                            
+                        ->bindValue(':newStatus', BanquetOrder::ORDER_STATUS_VERIFIED)
+                        ->bindValue(':orderId',$orderId)
+                        ->execute();
+
+                    }
+
+                    
                     
                 }
 
 
+
             }
 
-            
+            self::autoVerifyOrder();
+
+            self::generateInvoice();
             $transaction->commit();
 
         } catch (Exception $e)
@@ -117,6 +144,57 @@ class DaemonController extends Controller {
 
         
         
+    }
+
+    /**
+     * Invoice generation routine for verified order
+     */
+    private static function generateInvoice()
+    {
+        //find all orders that have been verified and
+        //ready to be invoiced
+
+        $userIds = BanquetOrder::find()
+                    ->select('userId')
+                    ->where(['orderStatus' => BanquetOrder::ORDER_STATUS_VERIFIED])
+                    ->distinct()->asArray()->all();
+
+        
+        foreach ($userIds as $userId)
+        {
+            $id = $userId["userId"];
+            Yii::info('xx='.$id);
+            InvoiceHelper::generateForUser($id);
+        }
+
+
+
+    }
+
+    /**
+     * User has the option to manually verify completed order
+     * If he/she does not verify the order after n day
+     * the order will automatically verified by system
+     */
+    private static function autoVerifyOrder()
+    {
+        
+        //get all order which are completed and not verified
+        Yii::$app->db->createCommand('UPDATE banquet_order
+                                         SET orderStatus=:statusVerified,
+                                         notificationSent=1
+                                        WHERE 
+                                            orderStatus =:statusCompleted
+                                        AND ADDDATE(latestEventDate,:autoVerifyDay) <= CURDATE() 
+                                        ')
+        ->bindValue(':statusVerified', BanquetOrder::ORDER_STATUS_VERIFIED)
+        ->bindValue(':statusCompleted', BanquetOrder::ORDER_STATUS_COMPLETED)
+        ->bindValue(':autoVerifyDay', AppHelper::getDaysOrderAutoVerified())
+        
+        ->execute();
+        
+        
+
     }
 
    

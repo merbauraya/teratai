@@ -2,7 +2,9 @@
 
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
- use yii\helpers\ArrayHelper; 
+use yii\helpers\ArrayHelper; 
+use kartik\number\NumberControl;
+
 use app\models\FoodCategory;
 
 /* @var $this yii\web\View */
@@ -21,6 +23,28 @@ use app\models\FoodCategory;
             ['prompt'=>'Select Category']
        )?> 
 
+    <?php
+        $dispOptions = ['class' => 'form-control kv-monospace'];
+        $saveCont = ['class' => 'kv-saved-cont'];
+         
+        $saveOptions = [
+            'type' => 'text', 
+            'label'=>'<label>Saved Value: </label>', 
+            'class' => 'kv-saved',
+            'readonly' => true, 
+            'tabindex' => 1000
+        ];
+
+            
+        echo $form->field($model, 'price')->widget(NumberControl::classname(), [
+            'maskedInputOptions' => [
+                
+                'allowMinus' => false
+            ],
+            'options' => $saveOptions,
+            'displayOptions' => $dispOptions
+        ]);
+        ?>
     <div class="form-group">
         <?= Html::submitButton('Save', ['class' => 'btn btn-success']) ?>
     </div>

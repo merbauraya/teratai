@@ -101,6 +101,7 @@ $this->params['breadcrumbs'][] = $this->title;
                'group' => false,  // enable grouping
 
             ],
+            'orderStatus',
             [
                 'attribute' =>'orderStatus',
                 'value' => function($model,$key,$index,$widget){

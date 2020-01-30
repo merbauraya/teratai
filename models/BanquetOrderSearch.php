@@ -35,6 +35,37 @@ class BanquetOrderSearch extends BanquetOrder
         return Model::scenarios();
     }
 
+    public function searchDetailWithInvoice($invoiceNo)
+    {
+        $params = '';
+        $query = BanquetOrderDetail::find()->select('summaryOrder.invoiceNumber,summaryOrder.orderPurpose,details.*')->alias('details');
+        $this->load($params);
+
+        $query->joinWith(['order as summaryOrder']);
+
+        $dataProvider = new ActiveDataProvider([
+            'query' => $query,
+        ]);
+
+        if (!$this->validate()) {
+            // uncomment the following line if you do not want to return any records when validation fails
+            // $query->where('0=1');
+            return $dataProvider;
+        }
+        $query->andFilterWhere(['=', 'summaryOrder.invoiceNumber', $invoiceNo]);
+        
+        
+        
+
+
+        $sql = $query->createCommand()->getRawSql();
+       // Yii::debug("MZMZ");
+        //Yii::debug($sql);
+
+
+        return $dataProvider;
+
+    }
     public function searchWithOrderDetail($params)
     {
         $query = BanquetOrder::find()->select('*');

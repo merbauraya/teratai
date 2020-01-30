@@ -5,6 +5,7 @@
 use yii\helpers\Html;
 use yii\widgets\DetailView;
 use yii\grid\GridView;
+use app\models\BanquetOrder;
 
 /* @var $this yii\web\View */
 /* @var $model app\models\BanquetOrder */
@@ -19,7 +20,9 @@ $this->params['breadcrumbs'][] = $this->title;
     
         <h1>Order Id: <?= Html::encode($this->title) ?></h1>
     <p>
+        <?php if ($orderDetail->isEditable()) {
 
+        ?>
         <?= Html::a('Edit Order', ['banquet-order/update', 'id' => $orderDetail->id], ['class' => 'btn btn-primary']) ?>
         <?= Html::a('Add Sub Order', ['banquet-order/add-detail', 'id' => $order->orderId], ['class' => 'btn btn-success']) ?>
 
@@ -30,6 +33,8 @@ $this->params['breadcrumbs'][] = $this->title;
                 'method' => 'post',
             ],
         ]) ?>
+        
+        <?php } ?>
     </p>
 
    
@@ -43,6 +48,12 @@ $this->params['breadcrumbs'][] = $this->title;
                 'label' => 'Name',
                 'value' => function ($model){
                     return $model->order->createdBy->profile->name;
+                }
+            ],
+            [
+                'label' => 'Order Status',
+                'value' => function ($model){
+                    return BanquetOrder::getOrderStatusText($model->orderStatus);
                 }
             ],
             [

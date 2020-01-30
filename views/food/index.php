@@ -33,6 +33,7 @@ $this->params['breadcrumbs'][] = $this->title;
                'attribute' => 'foodCategory.categoryName',
                // 'value' => $searchModel->foodCategory->categoryName
             ],
+            'price',
 
             ['class' => 'yii\grid\ActionColumn'],
         ],

@@ -43,7 +43,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
             [
                 'attribute' => 'order.orderPurpose',
-                'group' => false,
+                'group' => true,
             ],
             [
                 'attribute' => 'orderDateTime',

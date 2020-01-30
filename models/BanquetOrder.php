@@ -20,6 +20,7 @@ use Da\User\Model\User;
  * @property int $orderStatus 0-new,1-completed,2-cancelled
  * @property int $approvedBy
  * @property string $approvedDate
+ * @property string $invoiceNumber
  *
  * @property BanquetOrderDetail[] $banquetOrderDetails
  * @property BanquetOrderFood[] $banquetOrderFoods
@@ -65,7 +66,7 @@ class BanquetOrder extends \yii\db\ActiveRecord
             [['userId', 'serviceTypeId', 'orderStatus', 'approvedBy','notificationSent',
             'invoiceSent','approvalRequestSent'], 'integer'],
             [['userId', 'createdDate', 'orderDate', 'orderStatus'], 'required'],
-            [['createdDate', 'orderDate', 'approvedDate'], 'safe'],
+            [['createdDate', 'orderDate', 'approvedDate','latestEventDate','invoiceNumber'], 'safe'],
             [['orderPurpose'], 'string', 'max' => 100],
         ];
     }
@@ -88,7 +89,8 @@ class BanquetOrder extends \yii\db\ActiveRecord
             self::ORDER_STATUS_INVOICED => 'Invoiced',
             self::ORDER_STATUS_PAID => 'Paid',
             self::ORDER_STATUS_VERIFIED => 'Verified',
-            self::ORDER_STATUS_OTHER => 'Status Other'
+            self::ORDER_STATUS_OTHER => 'Status Other',
+            
             
         ];
     }
@@ -113,6 +115,7 @@ class BanquetOrder extends \yii\db\ActiveRecord
             'orderStatus' => 'Order Status',
             'approvedBy' => 'Approved By',
             'approvedDate' => 'Approved Date',
+            'invoiceNumber' => 'Invoice Number'
         ];
     }
 
@@ -140,6 +143,15 @@ class BanquetOrder extends \yii\db\ActiveRecord
     public function getApprovedBy()
     {
         return $this->hasOne(User::className(),['id' =>'approvedBy']);
+    }
+
+    public function getCanEdit()
+    {
+        if ($this->orderStatus==BanquetOrder::ORDER_STATUS_DRAFT || $this->orderStatus == BanquetOrder::ORDER_WAITING_APPROVAL)
+        {
+            return true;
+        }
+        return false;
     }
 
    
